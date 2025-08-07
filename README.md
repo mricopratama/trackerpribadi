@@ -1,59 +1,63 @@
-Tracker Pribadi - Aplikasi Pelacak Produktivitas Personal
-Tracker Pribadi adalah aplikasi cross-platform (Android, iOS, Windows) yang dibangun dengan Flutter dan Go. Aplikasi ini dirancang untuk membantu Anda melacak berbagai aspek penting dalam kehidupan profesional dan personal Anda, semuanya dalam satu tempat yang terorganisir.
+-----
 
-🚀 Tentang Proyek
+# Tracker Pribadi - Aplikasi Pelacak Produktivitas Personal
+
+**Tracker Pribadi** adalah aplikasi cross-platform (Android, iOS, Windows) yang dibangun dengan Flutter dan Go. Aplikasi ini dirancang untuk membantu Anda melacak berbagai aspek penting dalam kehidupan profesional dan personal Anda, semuanya dalam satu tempat yang terorganisir.
+
+-----
+
+## 🚀 Tentang Proyek
+
 Aplikasi ini lahir dari kebutuhan untuk memiliki sebuah dasbor terpusat untuk memantau:
 
-Pengeluaran Pribadi: Mencatat dan menganalisis ke mana uang Anda pergi.
-
-Proyek & Tugas: Mengelola proyek sampingan atau tugas-tugas pekerjaan dengan status dan urgensi yang jelas.
-
-Lamaran Kerja: Melacak setiap lamaran kerja yang Anda kirim, mulai dari status "Applied" hingga "Offer".
+  * **Pengeluaran Pribadi:** Mencatat dan menganalisis ke mana uang Anda pergi.
+  * **Proyek & Tugas:** Mengelola proyek sampingan atau tugas-tugas pekerjaan dengan status dan urgensi yang jelas.
+  * **Lamaran Kerja:** Melacak setiap lamaran kerja yang Anda kirim, mulai dari status "Applied" hingga "Offer".
 
 Dengan antarmuka yang bersih dan modern, Tracker Pribadi bertujuan untuk memberikan gambaran yang jelas tentang kemajuan Anda dan membantu Anda membuat keputusan yang lebih baik.
 
-✨ Fitur Utama
-Autentikasi Pengguna: Sistem login dan registrasi yang aman.
+-----
 
-Dasbor Ringkasan: Tampilan utama yang memberikan ringkasan cepat dari semua metrik penting.
+## ✨ Fitur Utama
 
-Pelacak Pengeluaran: Tambah, lihat, dan analisis pengeluaran berdasarkan kategori.
+  * **Autentikasi Pengguna:** Sistem login dan registrasi yang aman.
+  * **Dasbor Ringkasan:** Tampilan utama yang memberikan ringkasan cepat dari semua metrik penting.
+  * **Pelacak Pengeluaran:** Tambah, lihat, dan analisis pengeluaran berdasarkan kategori.
+  * **Manajemen Proyek:** Lacak status, urgensi, dan deadline untuk setiap proyek atau tugas.
+  * **Pelacak Lamaran Kerja:** Pantau setiap tahap dari proses rekrutmen untuk setiap lamaran.
+  * **Tema Terang & Gelap:** Dukungan tema yang indah dan konsisten yang beradaptasi dengan preferensi sistem Anda.
+  * **Cross-Platform:** Berjalan mulus di Android, iOS, dan Windows dari satu basis kode.
 
-Manajemen Proyek: Lacak status, urgensi, dan deadline untuk setiap proyek atau tugas.
+-----
 
-Pelacak Lamaran Kerja: Pantau setiap tahap dari proses rekrutmen untuk setiap lamaran.
+## 🛠️ Teknologi yang Digunakan
 
-Tema Terang & Gelap: Dukungan tema yang indah dan konsisten yang beradaptasi dengan preferensi sistem Anda.
-
-Cross-Platform: Berjalan mulus di Android, iOS, dan Windows dari satu basis kode.
-
-🛠️ Teknologi yang Digunakan
 Proyek ini dibagi menjadi dua bagian utama:
 
-Frontend (Aplikasi Mobile & Desktop):
+  * **Frontend (Aplikasi Mobile & Desktop):**
 
-Flutter: Framework UI dari Google untuk membangun aplikasi yang indah dan dikompilasi secara native.
+      * [**Flutter**](https://flutter.dev/): Framework UI dari Google untuk membangun aplikasi yang indah dan dikompilasi secara native.
+      * [**Riverpod**](https://riverpod.dev/): Solusi state management yang modern dan kuat.
+      * [**google\_fonts**](https://pub.dev/packages/google_fonts): Untuk menggunakan font yang bersih dan profesional (Inter).
+      * [**fl\_chart**](https://pub.dev/packages/fl_chart): Untuk membuat grafik yang indah dan interaktif.
+      * [**intl**](https://pub.dev/packages/intl): Untuk memformat angka (mata uang) dan tanggal.
 
-Riverpod: Solusi state management yang modern dan kuat.
+  * **Backend (Server API):**
 
-google_fonts: Untuk menggunakan font yang bersih dan profesional (Inter).
+      * [**Go (Golang)**](https://go.dev/): Bahasa pemrograman yang cepat dan efisien dari Google.
+      * [**Gin**](https://github.com/gin-gonic/gin): Framework web berperforma tinggi untuk membangun API.
 
-fl_chart: Untuk membuat grafik yang indah dan interaktif.
+-----
 
-intl: Untuk memformat angka (mata uang) dan tanggal.
+## ⚙️ Panduan Instalasi & Menjalankan
 
-Backend (Server API):
+Untuk menjalankan proyek ini secara lokal, Anda perlu menjalankan **backend** dan **frontend** secara terpisah.
 
-Go (Golang): Bahasa pemrograman yang cepat dan efisien dari Google.
+### 1\. Menjalankan Backend (Server Go)
 
-Gin: Framework web berperforma tinggi untuk membangun API.
+Pastikan Anda sudah menginstal **Go** di sistem Anda.
 
-⚙️ Panduan Instalasi & Menjalankan
-Untuk menjalankan proyek ini secara lokal, Anda perlu menjalankan backend dan frontend secara terpisah.
-
-1. Menjalankan Backend (Server Go)
-Pastikan Anda sudah menginstal Go di sistem Anda.
-
+```bash
 # 1. Masuk ke direktori backend
 cd backend
 
@@ -65,12 +69,15 @@ go mod tidy
 
 # 4. Jalankan server!
 go run main.go
+```
 
-Server Anda sekarang akan berjalan di http://localhost:8088. Biarkan jendela terminal ini tetap terbuka.
+Server Anda sekarang akan berjalan di `http://localhost:8088`. Biarkan jendela terminal ini tetap terbuka.
 
-2. Menjalankan Frontend (Aplikasi Flutter)
-Pastikan Anda sudah menginstal Flutter SDK.
+### 2\. Menjalankan Frontend (Aplikasi Flutter)
 
+Pastikan Anda sudah menginstal **Flutter SDK**.
+
+```bash
 # 1. Masuk ke direktori root proyek (trackerpribadi)
 # (Satu level di atas folder backend dan tracker)
 
@@ -79,16 +86,20 @@ flutter pub get
 
 # 3. Jalankan aplikasi di perangkat pilihan Anda (Emulator atau Desktop)
 flutter run
+```
 
 Aplikasi akan secara otomatis terhubung ke server backend yang sedang berjalan.
 
-Catatan Penting:
+**Catatan Penting:**
 
-Koneksi Lokal: Kode frontend sudah dikonfigurasi untuk secara otomatis menggunakan http://10.0.2.2:8088 saat berjalan di Emulator Android dan http://localhost:8088 di platform lain.
+  * **Koneksi Lokal:** Kode frontend sudah dikonfigurasi untuk secara otomatis menggunakan `http://10.0.2.2:8088` saat berjalan di Emulator Android dan `http://localhost:8088` di platform lain.
+  * **Firewall:** Jika Anda mengalami masalah koneksi di Windows, pastikan Anda telah mengizinkan koneksi masuk untuk port `8088` di Windows Defender Firewall.
 
-Firewall: Jika Anda mengalami masalah koneksi di Windows, pastikan Anda telah mengizinkan koneksi masuk untuk port 8088 di Windows Defender Firewall.
+-----
 
-📂 Struktur Folder
+## 📂 Struktur Folder
+
+```
 trackerpribadi/
 ├── backend/
 │   ├── go.mod
@@ -114,4 +125,20 @@ trackerpribadi/
     │   └── main.dart       # Titik masuk utama aplikasi Flutter
     │
     ├── assets/
+    │   └── images/
+    │       └── welcome.png
     │
+    └── pubspec.yaml
+```
+
+-----
+
+## 🤝 Kontribusi
+
+Kontribusi sangat kami hargai\! Jika Anda ingin berkontribusi, silakan *fork* repositori ini dan buat *pull request*. Untuk perubahan besar, silakan buka *issue* terlebih dahulu untuk mendiskusikan apa yang ingin Anda ubah.
+
+-----
+
+## 📜 Lisensi
+
+Proyek ini dilisensikan di bawah [Lisensi MIT](https://choosealicense.com/licenses/mit/).
