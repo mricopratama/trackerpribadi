@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/expense_model.dart';
 
 class ExpensesScreen extends StatefulWidget {
@@ -10,59 +11,97 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
-  // Data dummy yang akan dikelola oleh state
-  final List<Expense> _expenses = [
-    Expense(id: "1", title: "Makan Siang", amount: 50000, category: ExpenseCategory.makanan, date: DateTime.now().subtract(const Duration(days: 1))),
-    Expense(id: "2", title: "Tiket Bioskop", amount: 45000, category: ExpenseCategory.hiburan, date: DateTime.now().subtract(const Duration(days: 1))),
-    Expense(id: "3", title: "Naik MRT", amount: 15000, category: ExpenseCategory.transport, date: DateTime.now().subtract(const Duration(days: 2))),
-    Expense(id: "4", title: "Bayar Listrik", amount: 250000, category: ExpenseCategory.tagihan, date: DateTime.now().subtract(const Duration(days: 3))),
-  ];
+  final CollectionReference _expensesCollection = FirebaseFirestore.instance.collection('expenses');
 
-  void _addExpense(Expense expense) {
-    setState(() {
-      _expenses.insert(0, expense); // Menambahkan di awal daftar
-    });
+  Future<void> _addExpense(Expense expense) async {
+    await _expensesCollection.add(expense.toJson());
   }
 
-  void _openAddExpenseSheet() {
+  Future<void> _updateExpense(Expense expense) async {
+    await _expensesCollection.doc(expense.id).update(expense.toJson());
+  }
+
+  Future<void> _deleteExpense(String id) async {
+    await _expensesCollection.doc(id).delete();
+  }
+
+  void _openExpenseSheet({Expense? expense}) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Penting agar sheet bisa lebih tinggi
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _AddExpenseSheet(onAddExpense: _addExpense),
+      builder: (_) => _AddEditExpenseSheet(
+        expense: expense,
+        onSave: (newExpense) {
+          if (expense == null) {
+            _addExpense(newExpense);
+          } else {
+            _updateExpense(newExpense);
+          }
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final double totalAmount = _expenses.fold(0, (sum, item) => sum + item.amount);
-    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Pengeluaran"),
         centerTitle: false,
       ),
-      body: Column(
-        children: [
-          // Header Ringkasan
-          _buildSummaryHeader(formatter.format(totalAmount)),
-          // Daftar Pengeluaran
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _expenses.length,
-              itemBuilder: (context, index) {
-                return _ExpenseItem(expense: _expenses[index]);
-              },
-            ),
-          ),
-        ],
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _expensesCollection.orderBy('date', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("Belum ada pengeluaran."));
+          }
+
+          final expenses = snapshot.data!.docs.map((doc) {
+            return Expense.fromJson(doc.id, doc.data() as Map<String, dynamic>);
+          }).toList();
+
+          final double totalAmount = expenses.fold(0, (sum, item) => sum + item.amount);
+          final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+
+          return Column(
+            children: [
+              _buildSummaryHeader(formatter.format(totalAmount)),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: expenses.length,
+                  itemBuilder: (context, index) {
+                    final expense = expenses[index];
+                    return Dismissible(
+                      key: ValueKey(expense.id),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (_) => _deleteExpense(expense.id),
+                      background: Container(
+                        color: Colors.redAccent,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20.0),
+                        child: const Icon(Icons.delete_outline, color: Colors.white),
+                      ),
+                      child: _ExpenseItem(
+                        expense: expense,
+                        onTap: () => _openExpenseSheet(expense: expense),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _openAddExpenseSheet,
+        onPressed: () => _openExpenseSheet(),
         child: const Icon(Icons.add),
         tooltip: 'Tambah Pengeluaran',
       ),
@@ -78,17 +117,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Total Bulan Ini",
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Text(
-                total,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-              ),
+              Text("Total Bulan Ini", style: Theme.of(context).textTheme.titleMedium),
+              Text(total, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary)),
             ],
           ),
         ),
@@ -97,10 +127,10 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   }
 }
 
-// --- WIDGET untuk setiap item pengeluaran ---
 class _ExpenseItem extends StatelessWidget {
   final Expense expense;
-  const _ExpenseItem({required this.expense});
+  final VoidCallback onTap;
+  const _ExpenseItem({required this.expense, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -108,36 +138,42 @@ class _ExpenseItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6.0),
       child: ListTile(
+        onTap: onTap,
         leading: CircleAvatar(
           child: Icon(categoryIcons[expense.category], size: 24),
         ),
         title: Text(expense.title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(DateFormat('d MMMM y').format(expense.date)),
-        trailing: Text(
-          formatter.format(expense.amount),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        trailing: Text(formatter.format(expense.amount), style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }
 }
 
-
-// --- WIDGET untuk form tambah pengeluaran ---
-class _AddExpenseSheet extends StatefulWidget {
-  final Function(Expense) onAddExpense;
-  const _AddExpenseSheet({required this.onAddExpense});
+class _AddEditExpenseSheet extends StatefulWidget {
+  final Expense? expense;
+  final Function(Expense) onSave;
+  const _AddEditExpenseSheet({this.expense, required this.onSave});
 
   @override
-  State<_AddExpenseSheet> createState() => __AddExpenseSheetState();
+  State<_AddEditExpenseSheet> createState() => __AddEditExpenseSheetState();
 }
 
-class __AddExpenseSheetState extends State<_AddExpenseSheet> {
+class __AddEditExpenseSheetState extends State<_AddEditExpenseSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _amountController = TextEditingController();
+  late TextEditingController _titleController;
+  late TextEditingController _amountController;
   DateTime? _selectedDate;
   ExpenseCategory _selectedCategory = ExpenseCategory.makanan;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.expense?.title ?? '');
+    _amountController = TextEditingController(text: widget.expense?.amount.toStringAsFixed(0) ?? '');
+    _selectedDate = widget.expense?.date;
+    _selectedCategory = widget.expense?.category ?? ExpenseCategory.makanan;
+  }
 
   @override
   void dispose() {
@@ -150,41 +186,42 @@ class __AddExpenseSheetState extends State<_AddExpenseSheet> {
     final now = DateTime.now();
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: _selectedDate ?? now,
       firstDate: DateTime(now.year - 1, now.month, now.day),
       lastDate: now,
     );
-    setState(() {
-      _selectedDate = pickedDate;
-    });
+    if (pickedDate != null) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    }
   }
 
   void _submitData() {
     final isValid = _formKey.currentState!.validate();
     if (!isValid || _selectedDate == null) {
-      // Tampilkan pesan error jika tanggal kosong
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text( _selectedDate == null ? 'Silakan pilih tanggal.' : 'Harap isi semua kolom dengan benar.')),
+        SnackBar(content: Text(_selectedDate == null ? 'Silakan pilih tanggal.' : 'Harap isi semua kolom.')),
       );
       return;
     }
-    
-    final newExpense = Expense(
-      id: DateTime.now().toString(),
+
+    final expenseData = Expense(
+      id: widget.expense?.id ?? DateTime.now().toString(),
       title: _titleController.text,
       amount: double.parse(_amountController.text),
       date: _selectedDate!,
       category: _selectedCategory,
     );
 
-    widget.onAddExpense(newExpense);
-    Navigator.of(context).pop(); // Tutup bottom sheet
+    widget.onSave(expenseData);
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.expense != null;
     return Padding(
-      // Padding untuk mengakomodasi keyboard
       padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).viewInsets.bottom + 16),
       child: Form(
         key: _formKey,
@@ -192,7 +229,7 @@ class __AddExpenseSheetState extends State<_AddExpenseSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text("Tambah Pengeluaran Baru", style: Theme.of(context).textTheme.titleLarge),
+            Text(isEditing ? "Edit Pengeluaran" : "Tambah Pengeluaran Baru", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 20),
             TextFormField(
               controller: _titleController,
@@ -217,10 +254,7 @@ class __AddExpenseSheetState extends State<_AddExpenseSheet> {
                 Expanded(
                   child: Text(_selectedDate == null ? 'Pilih Tanggal' : DateFormat('d MMMM y').format(_selectedDate!)),
                 ),
-                IconButton(
-                  onPressed: _presentDatePicker,
-                  icon: const Icon(Icons.calendar_month),
-                ),
+                IconButton(onPressed: _presentDatePicker, icon: const Icon(Icons.calendar_month)),
               ],
             ),
             const SizedBox(height: 12),
@@ -243,7 +277,7 @@ class __AddExpenseSheetState extends State<_AddExpenseSheet> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _submitData,
-              child: const Text('Simpan'),
+              child: Text(isEditing ? 'Simpan Perubahan' : 'Simpan'),
             ),
           ],
         ),

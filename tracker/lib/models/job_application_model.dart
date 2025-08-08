@@ -12,6 +12,8 @@ class JobApplication {
   final String id;
   final String companyName;
   final String role;
+  final String location;
+  final String companyType;
   final DateTime dateApplied;
   final JobApplicationStatus status;
 
@@ -19,12 +21,13 @@ class JobApplication {
     required this.id,
     required this.companyName,
     required this.role,
+    required this.location,
+    required this.companyType,
     required this.dateApplied,
     required this.status,
   });
 }
 
-// Helper untuk mendapatkan properti dari status
 class JobStatusInfo {
   final String text;
   final Color color;
@@ -36,13 +39,13 @@ class JobStatusInfo {
     final colors = Theme.of(context).colorScheme;
     switch (status) {
       case JobApplicationStatus.applied:
-        return JobStatusInfo(text: 'Applied', color: colors.primary, icon: Icons.send);
+        return JobStatusInfo(text: 'Applied', color: colors.primary, icon: Icons.send_outlined);
       case JobApplicationStatus.interview:
-        return JobStatusInfo(text: 'Interview', color: Colors.orangeAccent, icon: Icons.group);
+        return JobStatusInfo(text: 'Interview', color: Colors.orangeAccent, icon: Icons.group_outlined);
       case JobApplicationStatus.offer:
-        return JobStatusInfo(text: 'Offer', color: Colors.green, icon: Icons.card_giftcard);
+        return JobStatusInfo(text: 'Offer', color: Colors.green, icon: Icons.card_giftcard_outlined);
       case JobApplicationStatus.rejected:
-        return JobStatusInfo(text: 'Rejected', color: colors.error, icon: Icons.do_not_disturb);
+        return JobStatusInfo(text: 'Rejected', color: colors.error, icon: Icons.do_not_disturb_on_outlined);
     }
   }
 }

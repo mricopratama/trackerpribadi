@@ -11,10 +11,10 @@ class JobsScreen extends StatefulWidget {
 
 class _JobsScreenState extends State<JobsScreen> {
   final List<JobApplication> _jobs = [
-    JobApplication(id: "j1", companyName: "PT. Teknologi Cerdas", role: "Flutter Developer", dateApplied: DateTime.now().subtract(const Duration(days: 3)), status: JobApplicationStatus.applied),
-    JobApplication(id: "j2", companyName: "Startup AI", role: "Backend Engineer", dateApplied: DateTime.now().subtract(const Duration(days: 8)), status: JobApplicationStatus.interview),
-    JobApplication(id: "j3", companyName: "Bank Digital", role: "QA Tester", dateApplied: DateTime.now().subtract(const Duration(days: 15)), status: JobApplicationStatus.rejected),
-    JobApplication(id: "j4", companyName: "E-commerce Raksasa", role: "Product Manager", dateApplied: DateTime.now().subtract(const Duration(days: 20)), status: JobApplicationStatus.offer),
+    JobApplication(id: "j1", companyName: "PT. Teknologi Cerdas", role: "Flutter Developer", location: "Jakarta, Remote", companyType: "Startup", dateApplied: DateTime.now().subtract(const Duration(days: 3)), status: JobApplicationStatus.applied),
+    JobApplication(id: "j2", companyName: "Startup AI", role: "Backend Engineer", location: "Bandung", companyType: "AI Research", dateApplied: DateTime.now().subtract(const Duration(days: 8)), status: JobApplicationStatus.interview),
+    JobApplication(id: "j3", companyName: "Bank Digital", role: "QA Tester", location: "Surabaya", companyType: "Fintech", dateApplied: DateTime.now().subtract(const Duration(days: 15)), status: JobApplicationStatus.rejected),
+    JobApplication(id: "j4", companyName: "E-commerce Raksasa", role: "Product Manager", location: "Jakarta", companyType: "Corporate", dateApplied: DateTime.now().subtract(const Duration(days: 20)), status: JobApplicationStatus.offer),
   ];
 
   void _addJobApplication(JobApplication job) {
@@ -49,7 +49,7 @@ class _JobsScreenState extends State<JobsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: _jobs.length,
               itemBuilder: (context, index) {
-                return _JobItem(job: _jobs[index]);
+                return _JobItemCard(job: _jobs[index]);
               },
             ),
           ),
@@ -82,43 +82,68 @@ class _JobsScreenState extends State<JobsScreen> {
   }
 }
 
-// --- WIDGET untuk setiap item lamaran ---
-class _JobItem extends StatelessWidget {
+class _JobItemCard extends StatelessWidget {
   final JobApplication job;
-  const _JobItem({required this.job});
+  const _JobItemCard({required this.job});
 
   @override
   Widget build(BuildContext context) {
     final statusInfo = JobStatusInfo.getInfo(context, job.status);
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-        leading: CircleAvatar(
-          backgroundColor: statusInfo.color.withOpacity(0.1),
-          child: Icon(statusInfo.icon, color: statusInfo.color),
-        ),
-        title: Text(job.companyName, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(job.role),
-        trailing: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusInfo.color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                statusInfo.text,
-                style: TextStyle(color: statusInfo.color, fontWeight: FontWeight.bold, fontSize: 12),
-              ),
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: statusInfo.color.withOpacity(0.1),
+                  child: Icon(statusInfo.icon, color: statusInfo.color),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(job.companyName, style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(job.role, style: textTheme.bodyMedium),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              DateFormat('d MMM y').format(job.dateApplied),
-              style: Theme.of(context).textTheme.bodySmall,
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                _InfoChip(icon: Icons.location_on_outlined, text: job.location),
+                const SizedBox(width: 12),
+                _InfoChip(icon: Icons.business_center_outlined, text: job.companyType),
+              ],
+            ),
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Dilamar pada ${DateFormat('d MMM y').format(job.dateApplied)}",
+                  style: textTheme.bodySmall,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: statusInfo.color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    statusInfo.text,
+                    style: TextStyle(color: statusInfo.color, fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -127,7 +152,6 @@ class _JobItem extends StatelessWidget {
   }
 }
 
-// --- WIDGET untuk chip ringkasan ---
 class _SummaryChip extends StatelessWidget {
   final int count;
   final String label;
@@ -137,21 +161,30 @@ class _SummaryChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          count.toString(),
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text(count.toString(), style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+        Text(label, style: Theme.of(context).textTheme.bodyMedium),
       ],
     );
   }
 }
 
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _InfoChip({required this.icon, required this.text});
 
-// --- WIDGET untuk form tambah lamaran ---
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: Theme.of(context).textTheme.bodySmall?.color),
+        const SizedBox(width: 4),
+        Text(text, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    );
+  }
+}
+
 class _AddJobSheet extends StatefulWidget {
   final Function(JobApplication) onAddJob;
   const _AddJobSheet({required this.onAddJob});
@@ -164,6 +197,8 @@ class __AddJobSheetState extends State<_AddJobSheet> {
   final _formKey = GlobalKey<FormState>();
   final _companyController = TextEditingController();
   final _roleController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _companyTypeController = TextEditingController();
   DateTime? _selectedDate;
   JobApplicationStatus _selectedStatus = JobApplicationStatus.applied;
 
@@ -171,6 +206,8 @@ class __AddJobSheetState extends State<_AddJobSheet> {
   void dispose() {
     _companyController.dispose();
     _roleController.dispose();
+    _locationController.dispose();
+    _companyTypeController.dispose();
     super.dispose();
   }
 
@@ -200,6 +237,8 @@ class __AddJobSheetState extends State<_AddJobSheet> {
       id: DateTime.now().toString(),
       companyName: _companyController.text,
       role: _roleController.text,
+      location: _locationController.text,
+      companyType: _companyTypeController.text,
       dateApplied: _selectedDate!,
       status: _selectedStatus,
     );
@@ -230,6 +269,18 @@ class __AddJobSheetState extends State<_AddJobSheet> {
               controller: _roleController,
               decoration: const InputDecoration(labelText: 'Posisi yang Dilamar'),
               validator: (value) => (value == null || value.isEmpty) ? 'Posisi tidak boleh kosong' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _locationController,
+              decoration: const InputDecoration(labelText: 'Lokasi (e.g. Jakarta, Remote)'),
+               validator: (value) => (value == null || value.isEmpty) ? 'Lokasi tidak boleh kosong' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _companyTypeController,
+              decoration: const InputDecoration(labelText: 'Jenis Perusahaan (e.g. Startup, Fintech)'),
+               validator: (value) => (value == null || value.isEmpty) ? 'Jenis perusahaan tidak boleh kosong' : null,
             ),
             const SizedBox(height: 20),
             Row(

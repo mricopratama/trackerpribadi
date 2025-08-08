@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:tracker/features/auth/screens/auth_screen.dart';
+import 'package:tracker/main_screen.dart';
 import 'core/theme.dart';
-import 'welcome_screen.dart';
+import 'firebase_options.dart';
 
-void main() {
-  runApp(const ProviderScope(child: PersonalTrackerApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const PersonalTrackerApp());
 }
 
 class PersonalTrackerApp extends StatelessWidget {
@@ -17,7 +24,22 @@ class PersonalTrackerApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const WelcomeScreen(), 
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          if (snapshot.hasData) {
+            return const MainScreen();
+          }
+          return const AuthScreen();
+        },
+      ),
       debugShowCheckedModeBanner: false,
     );
   }

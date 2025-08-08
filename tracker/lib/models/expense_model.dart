@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Enum untuk kategori pengeluaran
-enum ExpenseCategory {
-  makanan,
-  transport,
-  hiburan,
-  tagihan,
-  lainnya
-}
+enum ExpenseCategory { makanan, transport, hiburan, tagihan, lainnya }
 
-// Map untuk mengaitkan kategori dengan ikonnya
 final Map<ExpenseCategory, IconData> categoryIcons = {
   ExpenseCategory.makanan: Icons.fastfood_outlined,
   ExpenseCategory.transport: Icons.directions_bus_outlined,
@@ -32,4 +25,23 @@ class Expense {
     required this.date,
     required this.category,
   });
+
+  factory Expense.fromJson(String id, Map<String, dynamic> json) {
+    return Expense(
+      id: id,
+      title: json['title'],
+      amount: json['amount'],
+      date: (json['date'] as Timestamp).toDate(),
+      category: ExpenseCategory.values.byName(json['category']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'amount': amount,
+      'date': Timestamp.fromDate(date),
+      'category': category.name,
+    };
+  }
 }
